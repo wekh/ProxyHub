@@ -1,4 +1,4 @@
-name: Download v2rayN and v2rayNG Files
+name: Download v2rayN, v2rayNG, nekoray, and NekoBox Files
 
 on:
   push:
@@ -71,6 +71,62 @@ jobs:
               echo "未找到包含 '_arm64-v8a.apk' 的文件"
           fi
 
+      - name: Download nekoray file
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "开始下载最新的 nekoray 文件..."
+
+          # nekoray GitHub API URL
+          nekoray_url="https://api.github.com/repos/MatsuriDayo/nekoray/releases/latest"
+          echo "获取最新 nekoray 版本信息..."
+
+          # 获取最新版本信息
+          nekoray_response=$(curl -s "$nekoray_url")
+          echo "成功获取 nekoray 版本信息。"
+
+          # 下载 nekoray 文件，并设置为 nekoray.zip
+          echo "正在查找下载链接包含 'windows' 的文件..."
+          nekoray_download_url=$(echo "$nekoray_response" | jq -r ".assets[] | select(.name | contains(\"windows\")) | .browser_download_url")
+
+          if [ -n "$nekoray_download_url" ]; then
+              echo "找到下载链接: $nekoray_download_url"
+              echo "正在下载: nekoray.zip..."
+              curl -L -o "nekoray.zip" "$nekoray_download_url"
+              echo "nekoray.zip 下载完成！"
+          else
+              echo "未找到包含 'windows' 的文件"
+          fi
+
+      - name: Download NekoBox file
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "开始下载最新的 NekoBox 文件..."
+
+          # NekoBox GitHub API URL
+          nekobox_url="https://api.github.com/repos/MatsuriDayo/NekoBoxForAndroid/releases/latest"
+          echo "获取最新 NekoBox 版本信息..."
+
+          # 获取最新版本信息
+          nekobox_response=$(curl -s "$nekobox_url")
+          echo "成功获取 NekoBox 版本信息。"
+
+          # 下载 NekoBox 文件，并设置为 NekoBox.apk
+          echo "正在查找下载链接包含 'arm64-v8a' 的文件..."
+          nekobox_download_url=$(echo "$nekobox_response" | jq -r ".assets[] | select(.name | contains(\"arm64-v8a\")) | .browser_download_url")
+
+          if [ -n "$nekobox_download_url" ]; then
+              echo "找到下载链接: $nekobox_download_url"
+              echo "正在下载: NekoBox.apk..."
+              curl -L -o "NekoBox.apk" "$nekobox_download_url"
+              echo "NekoBox.apk 下载完成！"
+          else
+              echo "未找到包含 'arm64-v8a' 的文件"
+          fi
+
       - name: Check downloaded files
         run: |
           echo "检查下载的文件..."
@@ -86,10 +142,22 @@ jobs:
               echo "v2rayNG.apk 不存在！"
           fi
 
+          if [ -e "nekoray.zip" ]; then
+              echo "nekoray.zip 存在。"
+          else
+              echo "nekoray.zip 不存在！"
+          fi
+
+          if [ -e "NekoBox.apk" ]; then
+              echo "NekoBox.apk 存在。"
+          else
+              echo "NekoBox.apk 不存在！"
+          fi
+
       - name: Commit 和 push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add v2rayN-windows-64-With-Core.zip v2rayNG.apk
-          git commit -m "Add latest v2rayN and v2rayNG files" --allow-empty || echo "没有文件可以提交。"
+          git add v2rayN-windows-64-With-Core.zip v2rayNG.apk nekoray.zip NekoBox.apk
+          git commit -m "Add latest files" --allow-empty || echo "没有文件可以提交。"
           git push
