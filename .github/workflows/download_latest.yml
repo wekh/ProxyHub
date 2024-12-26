@@ -1,4 +1,4 @@
-name: Download v2rayN File
+name: Download v2rayN and v2rayNG Files
 
 on:
   push:
@@ -14,36 +14,64 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download file
+      - name: Download v2rayN file
         run: |
           #!/bin/bash
           set -e
 
           echo "开始下载最新的 v2rayN 文件..."
 
-          # GitHub API URL
-          url="https://api.github.com/repos/2dust/v2rayN/releases/latest"
-          echo "获取最新版本信息..."
+          # v2rayN GitHub API URL
+          v2rayN_url="https://api.github.com/repos/2dust/v2rayN/releases/latest"
+          echo "获取最新 v2rayN 版本信息..."
 
           # 获取最新版本信息
-          response=$(curl -s "$url")
-          echo "成功获取版本信息。"
+          v2rayN_response=$(curl -s "$v2rayN_url")
+          echo "成功获取 v2rayN 版本信息。"
 
-          # 只下载第一个文件
-          file_name="v2rayN-windows-64-With-Core.zip"
-          echo "正在查找下载链接: $file_name"
-          download_url=$(echo "$response" | jq -r ".assets[] | select(.name == \"$file_name\") | .browser_download_url")
+          # 下载 v2rayN 文件
+          v2rayN_file_name="v2rayN-windows-64-With-Core.zip"
+          echo "正在查找下载链接: $v2rayN_file_name"
+          v2rayN_download_url=$(echo "$v2rayN_response" | jq -r ".assets[] | select(.name == \"$v2rayN_file_name\") | .browser_download_url")
 
-          if [ -n "$download_url" ]; then
-              echo "找到下载链接: $download_url"
-              echo "正在下载: $file_name..."
-              curl -L -o "$file_name" "$download_url"
-              echo "$file_name 下载完成！"
+          if [ -n "$v2rayN_download_url" ]; then
+              echo "找到下载链接: $v2rayN_download_url"
+              echo "正在下载: $v2rayN_file_name..."
+              curl -L -o "$v2rayN_file_name" "$v2rayN_download_url"
+              echo "$v2rayN_file_name 下载完成！"
           else
-              echo "未找到文件: $file_name"
+              echo "未找到文件: $v2rayN_file_name"
           fi
 
-      - name: Check downloaded file
+      - name: Download v2rayNG file
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "开始下载最新的 v2rayNG 文件..."
+
+          # v2rayNG GitHub API URL
+          v2rayNG_url="https://api.github.com/repos/2dust/v2rayNG/releases/latest"
+          echo "获取最新 v2rayNG 版本信息..."
+
+          # 获取最新版本信息
+          v2rayNG_response=$(curl -s "$v2rayNG_url")
+          echo "成功获取 v2rayNG 版本信息。"
+
+          # 下载 v2rayNG 文件，并设置为 v2rayNG.apk
+          echo "正在查找下载链接包含 '_arm64-v8a.apk' 的文件..."
+          v2rayNG_download_url=$(echo "$v2rayNG_response" | jq -r ".assets[] | select(.name | contains(\"_arm64-v8a.apk\")) | .browser_download_url")
+
+          if [ -n "$v2rayNG_download_url" ]; then
+              echo "找到下载链接: $v2rayNG_download_url"
+              echo "正在下载: v2rayNG.apk..."
+              curl -L -o "v2rayNG.apk" "$v2rayNG_download_url"
+              echo "v2rayNG.apk 下载完成！"
+          else
+              echo "未找到包含 '_arm64-v8a.apk' 的文件"
+          fi
+
+      - name: Check downloaded files
         run: |
           echo "检查下载的文件..."
           if [ -e "v2rayN-windows-64-With-Core.zip" ]; then
@@ -52,10 +80,16 @@ jobs:
               echo "v2rayN-windows-64-With-Core.zip 不存在！"
           fi
 
+          if [ -e "v2rayNG.apk" ]; then
+              echo "v2rayNG.apk 存在。"
+          else
+              echo "v2rayNG.apk 不存在！"
+          fi
+
       - name: Commit 和 push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add v2rayN-windows-64-With-Core.zip
-          git commit -m "Add latest v2rayN file" --allow-empty || echo "没有文件可以提交。"
+          git add v2rayN-windows-64-With-Core.zip v2rayNG.apk
+          git commit -m "Add latest v2rayN and v2rayNG files" --allow-empty || echo "没有文件可以提交。"
           git push
