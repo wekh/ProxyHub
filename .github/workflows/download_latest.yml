@@ -1,10 +1,10 @@
-name: Download Latest v2rayN Release
+name: Download Multiple v2rayN Files
 
 on:
   push:
     branches:
-      - main  # 或者你想要触发的其他分支
-  workflow_dispatch:  # 允许手动触发工作流
+      - main
+  workflow_dispatch:
 
 jobs:
   download:
@@ -14,51 +14,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'  # 使用最新的 Python 版本
-
-      - name: Install dependencies
+      - name: Download files
         run: |
-          python -m pip install --upgrade pip
-          pip install requests
+          #!/bin/bash
+          set -e
 
-      - name: Download v2rayN-windows-64-With-Core.zip
-        run: |
-          import requests
+          echo "开始下载最新的 v2rayN 文件..."
 
           # GitHub API URL
-          url = "https://api.github.com/repos/2dust/v2rayN/releases/latest"
+          url="https://api.github.com/repos/2dust/v2rayN/releases/latest"
+          echo "获取最新版本信息..."
 
           # 获取最新版本信息
-          response = requests.get(url)
-          data = response.json()
+          response=$(curl -s "$url")
+          echo "成功获取版本信息。"
 
-          # 查找特定的下载链接
-          download_url = next(
-              (asset['browser_download_url'] for asset in data['assets'] 
-               if asset['name'] == 'v2rayN-windows-64-With-Core.zip'), 
-              None
+          # 要下载的文件名列表
+          files_to_download=(
+              "v2rayN-windows-64-With-Core.zip"
+              "v2rayN-windows-64.zip"
+              "v2rayN-windows-64-Installer.zip"
           )
 
-          if download_url:
-              print(f"正在下载: {download_url}")
-              with requests.get(download_url, stream=True) as r:
-                  r.raise_for_status()  # 检查请求是否成功
-                  with open('v2rayN-windows-64-With-Core.zip', 'wb') as f:
-                      for chunk in r.iter_content(chunk_size=8192):
-                          f.write(chunk)
-              print("下载完成！")
-          else:
-              print("未找到指定的文件！")
+          for file_name in "${files_to_download[@]}"; do
+              echo "正在查找下载链接: $file_name"
+              download_url=$(echo "$response" | jq -r ".assets[] | select(.name == \"$file_name\") | .browser_download_url")
+
+              if [ -n "$download_url" ]; then
+                  echo "找到下载链接: $download_url"
+                  echo "正在下载: $file_name..."
+                  curl -L -o "$file_name" "$download_url"
+                  echo "$file_name 下载完成！"
+              else
+                  echo "未找到文件: $file_name"
+              fi
+          done
 
       - name: Commit and Push
         run: |
+          echo "准备提交下载的文件..."
           git config --local user.email "you@example.com"  # 替换为你的邮箱
           git config --local user.name "Your Name"  # 替换为你的名字
-          git add v2rayN-windows-64-With-Core.zip
-          git commit -m "Add v2rayN-windows-64-With-Core.zip"
+          git add v2rayN-windows-64-With-Core.zip v2rayN-windows-64.zip v2rayN-windows-64-Installer.zip
+          git commit -m "Add latest v2rayN files"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
