@@ -1,4 +1,4 @@
-name: Download Multiple v2rayN Files
+name: Download v2rayN File
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download files
+      - name: Download file
         run: |
           #!/bin/bash
           set -e
@@ -29,34 +29,33 @@ jobs:
           response=$(curl -s "$url")
           echo "成功获取版本信息。"
 
-          # 要下载的文件名列表
-          files_to_download=(
-              "v2rayN-windows-64-With-Core.zip"
-              "v2rayN-windows-64.zip"
-              "v2rayN-windows-64-Installer.zip"
-          )
+          # 只下载第一个文件
+          file_name="v2rayN-windows-64-With-Core.zip"
+          echo "正在查找下载链接: $file_name"
+          download_url=$(echo "$response" | jq -r ".assets[] | select(.name == \"$file_name\") | .browser_download_url")
 
-          for file_name in "${files_to_download[@]}"; do
-              echo "正在查找下载链接: $file_name"
-              download_url=$(echo "$response" | jq -r ".assets[] | select(.name == \"$file_name\") | .browser_download_url")
+          if [ -n "$download_url" ]; then
+              echo "找到下载链接: $download_url"
+              echo "正在下载: $file_name..."
+              curl -L -o "$file_name" "$download_url"
+              echo "$file_name 下载完成！"
+          else
+              echo "未找到文件: $file_name"
+          fi
 
-              if [ -n "$download_url" ]; then
-                  echo "找到下载链接: $download_url"
-                  echo "正在下载: $file_name..."
-                  curl -L -o "$file_name" "$download_url"
-                  echo "$file_name 下载完成！"
-              else
-                  echo "未找到文件: $file_name"
-              fi
-          done
-
-      - name: Commit and Push
+      - name: Check downloaded file
         run: |
-          echo "准备提交下载的文件..."
-          git config --local user.email "you@example.com"  # 替换为你的邮箱
-          git config --local user.name "Your Name"  # 替换为你的名字
-          git add v2rayN-windows-64-With-Core.zip v2rayN-windows-64.zip v2rayN-windows-64-Installer.zip
-          git commit -m "Add latest v2rayN files"
+          echo "检查下载的文件..."
+          if [ -e "v2rayN-windows-64-With-Core.zip" ]; then
+              echo "v2rayN-windows-64-With-Core.zip 存在。"
+          else
+              echo "v2rayN-windows-64-With-Core.zip 不存在！"
+          fi
+
+      - name: Commit 和 push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add v2rayN-windows-64-With-Core.zip
+          git commit -m "Add latest v2rayN file" --allow-empty || echo "没有文件可以提交。"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
