@@ -126,6 +126,35 @@ jobs:
               echo "未找到包含 'arm64-v8a' 的文件"
           fi
 
+      - name: Download GitHubDesktop2Chinese file
+        run: |
+          #!/bin/bash
+          set -e
+
+          echo "开始下载最新的 GitHubDesktop2Chinese 文件..."
+
+          # GitHubDesktop2Chinese GitHub API URL
+          githubdesktop_url="https://api.github.com/repos/cngege/GitHubDesktop2Chinese/releases/latest"
+          echo "获取最新 GitHubDesktop2Chinese 版本信息..."
+
+          # 获取最新版本信息
+          githubdesktop_response=$(curl -s "$githubdesktop_url")
+          echo "成功获取 GitHubDesktop2Chinese 版本信息。"
+
+          # 下载 GitHubDesktop2Chinese 文件，并设置为 GitHubDesktop2Chinese.exe
+          githubdesktop_file_name="GitHubDesktop2Chinese.exe"
+          echo "正在查找下载链接: $githubdesktop_file_name"
+          githubdesktop_download_url=$(echo "$githubdesktop_response" | jq -r ".assets[] | select(.name == \"$githubdesktop_file_name\") | .browser_download_url")
+
+          if [ -n "$githubdesktop_download_url" ]; then
+              echo "找到下载链接: $githubdesktop_download_url"
+              echo "正在下载: $githubdesktop_file_name..."
+              curl -L -o "$githubdesktop_file_name" "$githubdesktop_download_url"
+              echo "$githubdesktop_file_name 下载完成！"
+          else
+              echo "未找到文件: $githubdesktop_file_name"
+          fi
+
       - name: Check downloaded files
         run: |
           echo "检查下载的文件..."
@@ -153,10 +182,16 @@ jobs:
               echo "NekoBox.apk 不存在！"
           fi
 
+          if [ -e "GitHubDesktop2Chinese.exe" ]; then
+              echo "GitHubDesktop2Chinese.exe 存在。"
+          else
+              echo "GitHubDesktop2Chinese.exe 不存在！"
+          fi
+
       - name: Commit 和 push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add v2rayN-windows-64-With-Core.zip v2rayNG.apk nekoray.zip NekoBox.apk
+          git add v2rayN-windows-64-With-Core.zip v2rayNG.apk nekoray.zip NekoBox.apk GitHubDesktop2Chinese.exe
           git commit -m "Add latest files" --allow-empty || echo "没有文件可以提交。"
           git push
