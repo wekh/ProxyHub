@@ -21,7 +21,7 @@ jobs:
           # Define an array of repositories and their corresponding download patterns
           declare -A repos=(
             ["v2rayN"]="https://api.github.com/repos/2dust/v2rayN/releases/latest v2rayN-windows-64-With-Core.zip"
-            ["v2rayNG"]="https://api.github.com/repos/2dust/v2rayNG/releases/latest _arm64-v8a v2rayNG.apk"
+            ["v2rayNG"]="https://api.github.com/repos/2dust/v2rayNG/releases/latest _arm64-v8a.apk v2rayNG.apk"
             ["nekoray"]="https://api.github.com/repos/MatsuriDayo/nekoray/releases/latest windows nekoray.zip"
             ["NekoBox"]="https://api.github.com/repos/MatsuriDayo/NekoBoxForAndroid/releases/latest arm64-v8a NekoBox.apk"
           )
@@ -44,7 +44,7 @@ jobs:
       - name: Check downloaded files
         run: |
           echo "检查下载的文件..."
-          for file in v2rayN-windows.zip v2rayNG.apk nekoray.zip NekoBox.apk; do
+          for file in v2rayN-windows-64-With-Core.zip v2rayNG.apk nekoray.zip NekoBox.apk; do
             if [ -e "$file" ]; then
               echo "$file 存在。"
             else
