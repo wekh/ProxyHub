@@ -35,9 +35,9 @@ jobs:
 
           if [ -n "$v2rayN_download_url" ]; then
               echo "找到下载链接: $v2rayN_download_url"
-              echo "正在下载: v2rayN.zip..."
-              curl -L -o "v2rayN.zip" "$v2rayN_download_url"
-              echo "v2rayN.zip 下载完成！"
+              echo "正在下载: $v2rayN_file_name..."
+              curl -L -o "$v2rayN_file_name" "$v2rayN_download_url"
+              echo "$v2rayN_file_name 下载完成！"
           else
               echo "未找到文件: $v2rayN_file_name"
           fi
@@ -129,10 +129,10 @@ jobs:
       - name: Check downloaded files
         run: |
           echo "检查下载的文件..."
-          if [ -e "v2rayN.zip" ]; then
-              echo "v2rayN.zip 存在。"
+          if [ -e "v2rayN-windows-64-With-Core.zip" ]; then
+              echo "v2rayN-windows-64-With-Core.zip 存在。"
           else
-              echo "v2rayN.zip 不存在！"
+              echo "v2rayN-windows-64-With-Core.zip 不存在！"
           fi
 
           if [ -e "v2rayNG.apk" ]; then
