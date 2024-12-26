@@ -157,6 +157,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add v2rayN.zip v2rayNG.apk nekoray.zip NekoBox.apk
+          git add v2rayN-windows-64-With-Core.zip v2rayNG.apk nekoray.zip NekoBox.apk
           git commit -m "Add latest files" --allow-empty || echo "没有文件可以提交。"
           git push
